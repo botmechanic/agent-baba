@@ -15,13 +15,29 @@ export class MeteoraService {
     try {
       console.log('Initializing Meteora pool monitoring...');
       
-      // Initialize the pool
+      // Create token info objects
+      const tokenInfoA = {
+        address: CONFIG.TOKEN_A_MINT,
+        decimals: CONFIG.TOKEN_A_DECIMALS,
+        symbol: CONFIG.TOKEN_A_SYMBOL,
+        chainId: 101,  // Solana's chain ID
+        name: CONFIG.TOKEN_A_SYMBOL
+      };
+
+      const tokenInfoB = {
+        address: CONFIG.TOKEN_B_MINT,
+        decimals: CONFIG.TOKEN_B_DECIMALS,
+        symbol: CONFIG.TOKEN_B_SYMBOL,
+        chainId: 101,
+        name: CONFIG.TOKEN_B_SYMBOL
+      };
+      
+      // Initialize the pool with token info
       this.pool = await AmmImpl.create(
         this.connection,
         this.poolAddress,
-        // We'll need to fetch and pass token info
-        null as any, // tokenX info
-        null as any  // tokenY info
+        tokenInfoA,
+        tokenInfoB
       );
 
       console.log('Meteora pool initialized successfully');
@@ -45,6 +61,7 @@ export class MeteoraService {
         throw new Error('Pool not initialized');
       }
 
+      // Just return the mint addresses for now
       const poolState = this.pool.poolState;
       
       return {
