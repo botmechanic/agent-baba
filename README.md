@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="agent-baba-github.jpg" alt="Agent Baba Logo" width="480"/>
+</p>
 # agent-baba
 
 To install dependencies:
