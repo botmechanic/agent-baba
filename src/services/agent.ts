@@ -3,12 +3,19 @@ import { PublicKey, Connection, Keypair } from '@solana/web3.js';
 import { CONFIG } from '../config';
 import bs58 from 'bs58';
 import { MeteoraService } from './meteora';
+import { PaperTradingService, paperTradingService } from './paper-trading';
+
+interface MeteoraError {
+  message: string;
+}
 
 export class AgentBABA {
   private agent: SolanaAgentKit;
   private tools: ReturnType<typeof createSolanaTools>;
   private meteoraService: MeteoraService;
+  private paperTradingService: PaperTradingService;
   public wallet: Keypair;
+  private paperPortfolioId?: number;
 
   constructor() {
     try {
@@ -33,9 +40,43 @@ export class AgentBABA {
         new Connection(CONFIG.RPC_URL),
         CONFIG.METEORA_POOL
       );
+
+      // Initialize Meteora pool
+      this.meteoraService.initialize()
+        .then(success => {
+          if (success) {
+            console.log('Meteora pool initialized in agent');
+          } else {
+            console.error('Failed to initialize Meteora pool in agent');
+          }
+        })
+        .catch(error => {
+          console.error('Error initializing Meteora pool:', error);
+        });
+
+      // Initialize paper trading
+      this.paperTradingService = paperTradingService;
+
     } catch (error) {
       console.error('Failed to initialize agent:', error);
       throw new Error('Failed to initialize agent. Check private key format.');
+    }
+  }
+
+  async initializePaperTrading() {
+    try {
+      // Create paper trading portfolio
+      this.paperPortfolioId = await this.paperTradingService.createPortfolio(
+        this.wallet.publicKey.toString(),
+        CONFIG.PAPER_TRADING.INITIAL_BALANCE.SOL,
+        CONFIG.PAPER_TRADING.INITIAL_BALANCE.BABABILL
+      );
+      
+      console.log('Paper trading portfolio initialized:', this.paperPortfolioId);
+      return this.paperPortfolioId;
+    } catch (error) {
+      console.error('Failed to initialize paper trading:', error);
+      throw error;
     }
   }
 
@@ -48,12 +89,6 @@ export class AgentBABA {
       console.log('Using placeholder price:', PLACEHOLDER_PRICE);
       
       return PLACEHOLDER_PRICE;
-
-      /* TODO: Implement actual price calculation once pool is working
-      const poolState = await this.meteoraService.getPoolState();
-      const price = Number(poolState.tokenBBalance) / Number(poolState.tokenABalance);
-      return price;
-      */
     } catch (error: unknown) {
       const err = error as MeteoraError;
       console.error('Error checking BABABILL price:', err);
@@ -67,6 +102,56 @@ export class AgentBABA {
       return balance ?? 0;
     } catch (error) {
       console.error('Error getting balance:', error);
+      throw error;
+    }
+  }
+
+  async executePaperTrade(
+    tradeType: 'BUY' | 'SELL',
+    amountIn: number
+  ) {
+    try {
+      if (!this.paperPortfolioId) {
+        throw new Error('Paper trading not initialized');
+      }
+
+      // Double-check Meteora initialization
+      if (!this.meteoraService.isInitialized()) {
+        console.log('Re-initializing Meteora pool...');
+        const success = await this.meteoraService.initialize();
+        if (!success) {
+          throw new Error('Failed to initialize Meteora pool');
+        }
+        console.log('Meteora pool re-initialized successfully');
+      }
+
+      // Get current BABABILL price
+      const currentPrice = await this.checkBABABILLPrice();
+
+      // Validate trade size
+      const maxTradeSize = tradeType === 'BUY' 
+        ? CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.SOL
+        : CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.BABABILL;
+
+      if (amountIn > maxTradeSize) {
+        throw new Error(`Trade size exceeds maximum allowed (${maxTradeSize})`);
+      }
+
+      // Execute paper trade
+      const trade = await this.paperTradingService.executePaperTrade(
+        this.paperPortfolioId,
+        tradeType,
+        amountIn,
+        currentPrice,
+        CONFIG.TRADE_SETTINGS.DEFAULT_SLIPPAGE_BPS
+      );
+
+      // Update portfolio snapshot
+      await this.paperTradingService.updatePortfolioSnapshot(this.paperPortfolioId);
+
+      return trade;
+    } catch (error) {
+      console.error('Failed to execute paper trade:', error);
       throw error;
     }
   }
@@ -110,6 +195,39 @@ export class AgentBABA {
       console.error('Error estimating micro-trade:', err);
       throw error;
     }
+  }
+
+  async getPaperPortfolioStatus() {
+    try {
+      if (!this.paperPortfolioId) {
+        throw new Error('Paper trading not initialized');
+      }
+
+      const [portfolio, stats] = await Promise.all([
+        this.paperTradingService.getPortfolio(this.paperPortfolioId),
+        this.paperTradingService.getPortfolioStats(this.paperPortfolioId)
+      ]);
+
+      return {
+        portfolio,
+        stats,
+        lastPrice: await this.checkBABABILLPrice()
+      };
+    } catch (error) {
+      console.error('Failed to get paper portfolio status:', error);
+      throw error;
+    }
+  }
+
+  async getPaperTrades(limit: number = 10, offset: number = 0) {
+    if (!this.paperPortfolioId) {
+      throw new Error('Paper trading not initialized');
+    }
+    return this.paperTradingService.getPortfolioTrades(
+      this.paperPortfolioId,
+      limit,
+      offset
+    );
   }
 }
 

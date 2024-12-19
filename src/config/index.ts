@@ -33,6 +33,25 @@ export const CONFIG = {
     MIN_TRADE_INTERVAL_MS: 5 * 60 * 1000,
     MIN_SOL_BALANCE: 0.05,
     DEFAULT_SLIPPAGE_BPS: 300
+  },
+
+  // Paper Trading Settings
+  PAPER_TRADING: {
+    INITIAL_BALANCE: {
+      SOL: 1.0,           // Initial SOL balance for new paper portfolios
+      BABABILL: 1000.0    // Initial BABABILL balance
+    },
+    MAX_POSITION_SIZE: {
+      SOL: 10.0,          // Maximum SOL per trade
+      BABABILL: 10000.0   // Maximum BABABILL per trade
+    },
+    MIN_TRADE_INTERVAL_MS: 5 * 60 * 1000,  // 5 minutes between trades
+    SNAPSHOT_INTERVAL_MS: 15 * 60 * 1000,  // 15 minutes between portfolio snapshots
+    RISK_PARAMS: {
+      MAX_DRAWDOWN_PCT: 10,        // Maximum drawdown percentage
+      MAX_DAILY_TRADES: 48,        // Maximum trades per day
+      MIN_PROFIT_TARGET_PCT: 0.5   // Minimum profit target percentage
+    }
   }
 };
 
