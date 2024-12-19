@@ -4,7 +4,7 @@ import { agentBABA, initializationError } from './services/agent';
 
 const app = new Hono();
 
-// Health check endpoint with detailed status
+// Health check endpoint
 app.get('/health', (c) => {
   return c.json({
     status: initializationError ? 'error' : 'ok',
@@ -13,6 +13,26 @@ app.get('/health', (c) => {
     error: initializationError?.message || null,
     initialization: initializationError ? 'failed' : 'success'
   });
+});
+
+// Get BABABILL price
+app.get('/price', async (c) => {
+  try {
+    const price = await agentBABA.checkBABABILLPrice();
+    return c.json({ price });
+  } catch (error) {
+    return c.json({ error: 'Failed to fetch price', details: (error as Error).message }, 500);
+  }
+});
+
+// Estimate micro-trade
+app.get('/estimate-trade', async (c) => {
+  try {
+    const estimate = await agentBABA.estimateMicroTrade();
+    return c.json(estimate);
+  } catch (error) {
+    return c.json({ error: 'Failed to estimate trade', details: (error as Error).message }, 500);
+  }
 });
 
 // Error handling middleware
@@ -27,10 +47,6 @@ app.onError((err, c) => {
 
 const port = process.env.PORT || 3000;
 console.log(`Starting server on port ${port}...`);
-
-if (initializationError) {
-  console.warn('Server starting with initialization errors. Some features may not work.');
-}
 
 serve({
   fetch: app.fetch,
