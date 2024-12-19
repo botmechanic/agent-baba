@@ -39,19 +39,24 @@ export class AgentBABA {
     }
   }
 
-  async initializeMeteora() {
-    return this.meteoraService.initialize();
-  }
-
   async checkBABABILLPrice(): Promise<number> {
     try {
+      // Use a placeholder price for testing
+      const PLACEHOLDER_PRICE = 1.0;  // 1 USD per token
+      
+      // Log for debugging
+      console.log('Using placeholder price:', PLACEHOLDER_PRICE);
+      
+      return PLACEHOLDER_PRICE;
+
+      /* TODO: Implement actual price calculation once pool is working
       const poolState = await this.meteoraService.getPoolState();
-      // Calculate price based on pool balances
-      // This is a simplified calculation - we'll make it more accurate
-      const price = poolState.tokenBBalance / poolState.tokenABalance;
+      const price = Number(poolState.tokenBBalance) / Number(poolState.tokenABalance);
       return price;
-    } catch (error) {
-      console.error('Error checking BABABILL price:', error);
+      */
+    } catch (error: unknown) {
+      const err = error as MeteoraError;
+      console.error('Error checking BABABILL price:', err);
       throw error;
     }
   }
@@ -68,15 +73,41 @@ export class AgentBABA {
 
   async estimateMicroTrade(amountUsd: number = 1) {
     try {
+      // Ensure positive amount
+      if (typeof amountUsd !== 'number' || isNaN(amountUsd) || amountUsd <= 0) {
+        throw new Error('Invalid USD amount. Must be a positive number.');
+      }
+
+      // Initialize pool only once
+      if (!this.meteoraService.isInitialized()) {
+        const success = await this.meteoraService.initialize();
+        if (!success) {
+          throw new Error('Failed to initialize Meteora pool');
+        }
+      }
+
       const price = await this.checkBABABILLPrice();
+      if (!price || price <= 0) {
+        throw new Error('Invalid price received from pool');
+      }
+
+      // Calculate token amount from USD value
       const tokenAmount = amountUsd / price;
       
+      // Log for debugging
+      console.log('Estimating trade:', {
+        amountUsd,
+        price,
+        tokenAmount
+      });
+
       return await this.meteoraService.estimateMicroTrade(
         tokenAmount,
         CONFIG.TRADE_SETTINGS.MAX_SLIPPAGE
       );
-    } catch (error) {
-      console.error('Error estimating micro-trade:', error);
+    } catch (error: unknown) {
+      const err = error as MeteoraError;
+      console.error('Error estimating micro-trade:', err);
       throw error;
     }
   }
@@ -89,19 +120,6 @@ let agentBABA: AgentBABA;
 try {
   agentBABA = new AgentBABA();
   console.log('Agent BABA initialized successfully');
-  
-  // Initialize Meteora monitoring
-  agentBABA.initializeMeteora()
-    .then(success => {
-      if (success) {
-        console.log('Meteora monitoring initialized successfully');
-      } else {
-        console.error('Failed to initialize Meteora monitoring');
-      }
-    })
-    .catch(error => {
-      console.error('Error initializing Meteora monitoring:', error);
-    });
 } catch (error) {
   console.error('Failed to initialize Agent BABA:', error);
   initializationError = error as Error;
