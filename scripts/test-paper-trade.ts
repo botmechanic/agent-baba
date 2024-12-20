@@ -33,8 +33,8 @@ async function testPaperTrading() {
         // Get updated status
         const midStatus = await agentBABA.getPaperPortfolioStatus();
         console.log('\nMid-trade balances:', {
-            SOL: midStatus.portfolio.currentBalanceSol,
-            BABABILL: midStatus.portfolio.currentBalanceBababill
+            SOL: midStatus?.portfolio?.currentBalanceSol,
+            BABABILL: midStatus?.portfolio?.currentBalanceBababill
         });
 
         // Sell half of what we bought
@@ -49,10 +49,10 @@ async function testPaperTrading() {
         console.log('\n4. Getting final portfolio status...');
         const finalStatus = await agentBABA.getPaperPortfolioStatus();
         console.log('Final balances:', {
-            SOL: finalStatus.portfolio.currentBalanceSol,
-            BABABILL: finalStatus.portfolio.currentBalanceBababill,
-            trades: finalStatus.portfolio.tradesCount,
-            pnl: finalStatus.portfolio.totalPnlUsd
+            SOL: finalStatus?.portfolio?.currentBalanceSol,
+            BABABILL: finalStatus?.portfolio?.currentBalanceBababill,
+            trades: finalStatus?.portfolio?.tradesCount,
+            pnl: finalStatus?.portfolio?.totalPnlUsd
         });
 
     } catch (error) {
