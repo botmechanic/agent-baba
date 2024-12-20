@@ -198,24 +198,34 @@ export class AgentBABA {
   }
 
   async getPaperPortfolioStatus() {
-    try {
-      if (!this.paperPortfolioId) {
-        throw new Error('Paper trading not initialized');
-      }
+    // Check initialization without try-catch
+    if (!this.paperPortfolioId) {
+      return {
+        status: 'uninitialized',
+        message: 'Paper trading not initialized',
+        action: 'Please initialize paper trading first',
+        portfolio: null,
+        stats: null,
+        lastPrice: await this.checkBABABILLPrice()
+      };
+    }
 
+    try {
       const [portfolio, stats] = await Promise.all([
         this.paperTradingService.getPortfolio(this.paperPortfolioId),
         this.paperTradingService.getPortfolioStats(this.paperPortfolioId)
       ]);
 
       return {
+        status: 'active',
+        message: 'Paper trading portfolio is active',
         portfolio,
         stats,
         lastPrice: await this.checkBABABILLPrice()
       };
     } catch (error) {
-      console.error('Failed to get paper portfolio status:', error);
-      throw error;
+      console.error('Error fetching portfolio data:', error);
+      throw new Error('Failed to fetch portfolio data');
     }
   }
 
