@@ -10,7 +10,7 @@
 
 ### 🌟 Overview
 
-Agent BABA is an innovative autonomous trading agent that operates on the Solana blockchain, specifically designed to optimize trading strategies for the $BABABILL token through Meteora liquidity pools. By combining the power of Retrieval Augmented Generation (RAG), pgAI vector embeddings, and autonomous decision-making capabilities, Agent BABA represents a new paradigent in on-chain trading automation.
+Agent BABA is an innovative autonomous trading agent that operates on the Solana blockchain, specifically designed to optimize trading strategies for the $BABABILL token through Meteora liquidity pools. By combining the power of Retrieval Augmented Generation (RAG), pgAI vector embeddings, and autonomous decision-making capabilities, Agent BABA represents a new paradigm in on-chain trading automation.
 
 ### 🏗️ Architecture
 
@@ -19,6 +19,8 @@ flowchart TB
     subgraph On-Chain
         MP[Meteora Pool] <--> SA[Solana Agent Kit]
         SA <--> JE[Jupiter Exchange]
+        BE[BirdEye API] --> PS[Price Service]
+        PS --> AB
     end
 
     subgraph Agent BABA Core
@@ -27,12 +29,14 @@ flowchart TB
         AB --> CA[Claude AI]
         DB --> RAG[RAG Engine]
         RAG --> CA
+        VW[Vectorizer Worker] --> DB
     end
 
     subgraph Analysis Flow
         DB --> VA[Vector Analysis]
         VA --> TS[Trade Signals]
         TS --> AB
+        VW --> |Embeddings| VA
     end
 
     subgraph Learning Loop
@@ -40,6 +44,7 @@ flowchart TB
         SA --> |Trade Results| DB
         CA --> |Trading Insights| DB
         DB --> |Historical Context| AB
+        PS --> |Price Data| DB
     end
 
     style Agent BABA Core fill:#f9f,stroke:#333,stroke-width:2px
@@ -56,20 +61,21 @@ flowchart TB
 - Automated micro-trading strategies
 - Self-adjusting parameters based on market conditions
 - Slippage protection and fail-safes
+- Integrated BirdEye price feeds _(in progress)_
 
 #### 2. RAG-Enhanced Decision Making
 
-- Vector embeddings of historical trades
-- Semantic search for similar market conditions
-- AI-powered strategy optimization
+- Vector embeddings of historical trades using pgAI
+- Semantic search with Ollama (all-minilm model)
+- Automated vector updates via pgAI vectorizer
 - Continuous learning from trade outcomes
 
 #### 3. Advanced Analytics
 
-- Real-time price impact analysis
+- Real-time price impact analysis via BirdEye
 - Liquidity depth monitoring
-- Performance tracking and optimization
-- Historical trade pattern analysis
+- Vector-based trade pattern analysis
+- Historical trade pattern matching
 
 ### 🛠️ Technical Stack
 
@@ -77,7 +83,8 @@ flowchart TB
 - **DEX Integration**: Meteora/Jupiter
 - **Language**: TypeScript/Bun
 - **AI**: Claude AI (Anthropic)
-- **Vector Database**: PGAI
+- **Vector Database**: PGAI with Ollama
+- **Price Oracle**: BirdEye API
 - **Server**: Hono
 - **SDK**: Solana Agent Kit
 
@@ -85,14 +92,14 @@ flowchart TB
 
 1. **Market Monitoring**
 
+   - Real-time price tracking via BirdEye
    - Continuous monitoring of Meteora pool states
-   - Real-time price and liquidity tracking
-   - Transaction monitoring and analysis
+   - Transaction monitoring and vector analysis
 
 2. **Trade Analysis**
 
-   - Vector embedding of trade parameters
-   - Semantic similarity search for historical context
+   - Automated vector embedding (384 dimensions)
+   - Semantic similarity search with proven accuracy
    - AI-powered outcome prediction
    - Risk assessment and optimization
 
@@ -100,14 +107,14 @@ flowchart TB
    - Smart order routing via Jupiter
    - Slippage protection
    - Transaction verification
-   - Performance recording
+   - Automatic trade vectorization
 
 ### 💡 Innovation Highlights
 
-- **First RAG-Enhanced Solana Trading Agent**: Combines on-chain data with AI-powered decision making
+- **Vector-Enhanced Trading**: Uses pgAI vectorizer for automated trade analysis
 - **Autonomous Learning Loop**: Continuously improves trading strategies based on outcomes
-- **Vector-Based Market Analysis**: Uses cutting-edge vector similarity for market pattern recognition
-- **Micro-Trading Optimization**: Specialized in small, efficient trades for optimal returns
+- **Real-time Price Integration**: BirdEye API integration for accurate pricing
+- **Micro-Trading Optimization**: Specialized in small, efficient trades
 
 ### 🔧 Installation
 
@@ -117,6 +124,12 @@ git clone https://github.com/yourusername/agent-baba.git
 
 # Install dependencies
 bun install
+
+# Start the database and required services
+docker compose up -d
+
+# Pull required Ollama model
+docker compose exec ollama ollama pull all-minilm
 
 # Initialize the database
 bun run init-db
@@ -128,19 +141,33 @@ bun run dev
 ### 🌐 API Endpoints
 
 - `GET /health` - Check agent status
-- `GET /price` - Get current BABABILL price
+- `GET /price` - Get current token price (BirdEye integration)
 - `GET /estimate-trade` - Estimate trade outcome
+- `GET /paper-trading/*` - Paper trading endpoints
 
 ### 🔒 Environment Variables
 
 ```env
 HELIUS_RPC_URL=your_helius_url
 CLAUDE_API_KEY=your_claude_key
+BIRDEYE_API_KEY=your_birdeye_key
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=agent_baba
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=postgres
+```
+
+### 📦 Docker Services
+
+```yaml
+services:
+  db:
+    image: timescale/timescaledb-ha:pg17
+  vectorizer-worker:
+    image: timescale/pgai-vectorizer-worker:latest
+  ollama:
+    image: ollama/ollama
 ```
 
 ### 👥 Team
