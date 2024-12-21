@@ -4,6 +4,7 @@ import { CONFIG } from '../config';
 import bs58 from 'bs58';
 import { MeteoraService } from './meteora';
 import { PaperTradingService, paperTradingService } from './paper-trading';
+import { aggregatedPriceService } from './price/aggregated';
 
 interface MeteoraError {
   message: string;
@@ -82,19 +83,13 @@ export class AgentBABA {
 
   async checkBABABILLPrice(): Promise<number> {
     try {
-      // Use a placeholder price for testing
-      const PLACEHOLDER_PRICE = 1.0;  // 1 USD per token
-      
-      // Log for debugging
-      console.log('Using placeholder price:', PLACEHOLDER_PRICE);
-      
-      return PLACEHOLDER_PRICE;
-    } catch (error: unknown) {
-      const err = error as MeteoraError;
-      console.error('Error checking BABABILL price:', err);
-      throw error;
+        const price = await aggregatedPriceService.getTokenPrice(CONFIG.BABABILL_TOKEN);
+        return price.price;
+    } catch (error) {
+        console.error('Error checking BABABILL price:', error);
+        throw error;
     }
-  }
+}
 
   async getBalance(tokenMint?: PublicKey): Promise<number> {
     try {

@@ -1,9 +1,13 @@
+// src/db/schema.ts
+
 export const SCHEMA = `
-  -- Drop existing objects
+  -- First drop any existing objects
+  DROP TABLE IF EXISTS trade_embeddings_store CASCADE;
   DROP TABLE IF EXISTS portfolio_snapshots CASCADE;
   DROP TABLE IF EXISTS paper_trades CASCADE;
   DROP TABLE IF EXISTS paper_portfolios CASCADE;
   DROP TABLE IF EXISTS meteora_pool_states CASCADE;
+  DROP VIEW IF EXISTS trade_embeddings CASCADE;
   DROP TYPE IF EXISTS trade_status CASCADE;
 
   -- Create trade status enum
@@ -72,8 +76,42 @@ export const SCHEMA = `
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 
+  -- Create trade embeddings storage
+  CREATE TABLE trade_embeddings_store (
+      id SERIAL PRIMARY KEY,
+      chunk_id TEXT NOT NULL,
+      trade_id INTEGER REFERENCES paper_trades(id),
+      metadata JSONB,
+      embedding VECTOR(1536),
+      created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+  );
+
+  -- Create embeddings view combining trade data with embeddings
+  CREATE VIEW trade_embeddings AS
+  SELECT 
+      es.id as embedding_id,
+      es.chunk_id,
+      es.embedding,
+      t.id as trade_id,
+      t.trade_type,
+      t.token_in,
+      t.token_out,
+      t.amount_in,
+      t.amount_out,
+      t.price_at_trade,
+      t.estimated_price_impact,
+      t.slippage_bps,
+      t.fees_sol,
+      t.trade_pnl_usd,
+      t.created_at as trade_time,
+      es.metadata as embedding_metadata,
+      t.metadata as trade_metadata
+  FROM trade_embeddings_store es
+  JOIN paper_trades t ON es.trade_id = t.id;
+
   -- Create indexes
   CREATE INDEX idx_paper_trades_portfolio_id ON paper_trades(portfolio_id);
   CREATE INDEX idx_portfolio_snapshots_portfolio_id ON portfolio_snapshots(portfolio_id);
   CREATE INDEX idx_paper_portfolios_wallet_address ON paper_portfolios(wallet_address);
+  CREATE INDEX trade_embeddings_store_embedding_idx ON trade_embeddings_store USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100);
 `;

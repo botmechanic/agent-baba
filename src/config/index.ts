@@ -16,6 +16,7 @@ export const CONFIG = {
   // RPC and API endpoints
   RPC_URL: process.env.HELIUS_RPC_URL || 'https://rpc.helius.xyz/?api-key=YOUR_API_KEY',
   CLAUDE_API_KEY: process.env.CLAUDE_API_KEY || '',
+  BIRDEYE_API_KEY: process.env.BIRDEYE_API_KEY || '',
   
   // Database configuration
   DATABASE: {
