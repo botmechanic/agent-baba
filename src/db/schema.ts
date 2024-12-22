@@ -76,6 +76,17 @@ export const SCHEMA = `
       created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
   );
 
+  -- Create token correlations table
+CREATE TABLE token_correlations (
+    id SERIAL PRIMARY KEY,
+    bababill_price NUMERIC NOT NULL,
+    agentb_price NUMERIC NOT NULL,
+    timestamp TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX idx_token_correlations_timestamp 
+ON token_correlations(timestamp);
+
   -- Create trade embeddings storage
   CREATE TABLE trade_embeddings_store (
       id SERIAL PRIMARY KEY,

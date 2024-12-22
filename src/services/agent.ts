@@ -5,6 +5,7 @@ import bs58 from 'bs58';
 import { MeteoraService } from './meteora';
 import { PaperTradingService, paperTradingService } from './paper-trading';
 import { aggregatedPriceService } from './price/aggregated';
+import { symbiosisService } from './symbiosis';
 
 interface MeteoraError {
   message: string;
@@ -64,6 +65,23 @@ export class AgentBABA {
     }
   }
 
+  // src/services/agent.ts - Add to AgentBABA class
+async monitorSymbiosis() {
+  const metrics = await symbiosisService.getPerformanceMetrics();
+  
+  // Adjust trading parameters based on symbiosis health
+  if (metrics.correlation < CONFIG.SYMBIOSIS.MIN_CORRELATION) {
+    // Become more conservative
+    this.adjustTradingParameters('conservative');
+  } else if (metrics.tradingEfficiency > 0.8) {
+    // Be more aggressive when performing well
+    this.adjustTradingParameters('aggressive');
+  }
+
+  return metrics;
+}
+
+  
   async initializePaperTrading() {
     try {
       // Create paper trading portfolio
@@ -233,6 +251,19 @@ export class AgentBABA {
       limit,
       offset
     );
+  }
+
+  // Add this method to the AgentBABA class
+  private adjustTradingParameters(mode: 'conservative' | 'aggressive') {
+    if (mode === 'conservative') {
+      CONFIG.TRADE_SETTINGS.MAX_SLIPPAGE *= 0.8;
+      CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.SOL *= 0.8;
+      CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.BABABILL *= 0.8;
+    } else {
+      CONFIG.TRADE_SETTINGS.MAX_SLIPPAGE *= 1.2;
+      CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.SOL *= 1.2;
+      CONFIG.PAPER_TRADING.MAX_POSITION_SIZE.BABABILL *= 1.2;
+    }
   }
 }
 

@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { serve } from '@hono/node-server';
 import { agentBABA, initializationError } from './services/agent';
+import { symbiosisService } from './services/symbiosis';
 
 const app = new Hono();
 
@@ -23,6 +24,35 @@ app.get('/price', async (c) => {
   } catch (error) {
     return c.json({ 
       error: 'Failed to fetch price', 
+      details: (error as Error).message 
+    }, 500);
+  }
+});
+
+// src/index.ts - Add new endpoints
+app.get('/symbiosis/metrics', async (c) => {
+  try {
+    const metrics = await agentBABA.monitorSymbiosis();
+    return c.json(metrics);
+  } catch (error) {
+    return c.json({ 
+      error: 'Failed to get symbiosis metrics', 
+      details: (error as Error).message 
+    }, 500);
+  }
+});
+
+app.get('/symbiosis/status', async (c) => {
+  try {
+    const correlation = await symbiosisService.trackTokenCorrelation();
+    return c.json({
+      status: correlation.isHealthy ? 'healthy' : 'needs attention',
+      correlation: correlation.correlation,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    return c.json({ 
+      error: 'Failed to get symbiosis status', 
       details: (error as Error).message 
     }, 500);
   }

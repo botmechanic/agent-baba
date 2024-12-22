@@ -53,6 +53,19 @@ export const CONFIG = {
       MAX_DAILY_TRADES: 48,        // Maximum trades per day
       MIN_PROFIT_TARGET_PCT: 0.5   // Minimum profit target percentage
     }
+  },
+
+  TOKENS: {
+    BABABILL: new PublicKey('39xVYiSXUAed2ksrr7KJLxJfbsM7TL7Cs8MMEsKZuABX'),
+    AGENTB: new PublicKey('3y4LYYzTiCu4AGN4ksTtF7ZNoqmCy3daBcXVrjPApump'), // Deploy this
+  },
+  
+  SYMBIOSIS: {
+    MIN_CORRELATION: 0.7,
+    PERFORMANCE_WINDOW_HOURS: 24,
+    MAX_PRICE_DIVERGENCE: 0.1, // 10%
+    ADJUSTMENT_THRESHOLD: 0.05,
+    TRADE_SIZE_MULTIPLIER: 1.5
   }
 };
 
