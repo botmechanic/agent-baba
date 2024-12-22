@@ -1,8 +1,9 @@
-<p align="center">
-  <img src="agent-baba-github.jpg" alt="Agent BABA Logo" width="480"/>
+markdownCopy<p align="center">
+<img src="agent-baba-github.jpg" alt="Agent BABA Logo" width="480"/>
+
 </p>
 
-## Agent BABA: Autonomous Solana Trading Agent with RAG-Enhanced Decision Making
+## Agent BABA: Autonomous Solana Trading Agent with Vector-Enhanced Analysis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Built with Bun](https://img.shields.io/badge/Built%20with-Bun-orange)](https://bun.sh/)
@@ -10,157 +11,138 @@
 
 ### 🌟 Overview
 
-Agent BABA is an innovative autonomous trading agent that operates on the Solana blockchain, specifically designed to optimize trading strategies for the $BABABILL token through Meteora liquidity pools. By combining the power of Retrieval Augmented Generation (RAG), pgAI vector embeddings, and autonomous decision-making capabilities, Agent BABA represents a new paradigm in on-chain trading automation.
+Agent BABA is an autonomous trading agent for the Solana blockchain that combines Meteora liquidity pools, vector-based trade analysis, and paper trading capabilities. It uses pgvector for trade pattern analysis and provides a comprehensive API for interacting with Meteora pools, analyzing trades, and managing paper trading portfolios.
 
-### 🏗️ Architecture
+### 🏗️ Core Architecture
 
 ```mermaid
 flowchart TB
-    subgraph On-Chain
-        MP[Meteora Pool] <--> SA[Solana Agent Kit]
-        SA <--> JE[Jupiter Exchange]
-        BE[BirdEye API] --> PS[Price Service]
-        PS --> AB
+    subgraph Trading Infrastructure
+        MP[Meteora Pool] <--> PS[Price Service]
+        PS --> PTS[Paper Trading]
+        BE[BirdEye API] --> PS
     end
 
-    subgraph Agent BABA Core
-        AB[Agent BABA] --> SA
-        AB --> DB[(PGAI Vector DB)]
-        AB --> CA[Claude AI]
-        DB --> RAG[RAG Engine]
-        RAG --> CA
-        VW[Vectorizer Worker] --> DB
+    subgraph Trade Analysis
+        PTS --> VDB[(Vector Database)]
+        VDB --> VS[Vector Search]
+        VW[Vectorizer Worker] --> VDB
     end
 
-    subgraph Analysis Flow
-        DB --> VA[Vector Analysis]
-        VA --> TS[Trade Signals]
-        TS --> AB
-        VW --> |Embeddings| VA
+    subgraph Services
+        API[HTTP API] --> PTS
+        API --> PS
+        VS --> API
     end
 
-    subgraph Learning Loop
-        MP --> |Pool State| DB
-        SA --> |Trade Results| DB
-        CA --> |Trading Insights| DB
-        DB --> |Historical Context| AB
-        PS --> |Price Data| DB
-    end
-
-    style Agent BABA Core fill:#f9f,stroke:#333,stroke-width:2px
-    style On-Chain fill:#bbf,stroke:#333,stroke-width:2px
-    style Analysis Flow fill:#bfb,stroke:#333,stroke-width:2px
-    style Learning Loop fill:#fbb,stroke:#333,stroke-width:2px
+    style Trading Infrastructure fill:#bbf,stroke:#333,stroke-width:2px
+    style Trade Analysis fill:#bfb,stroke:#333,stroke-width:2px
+    style Services fill:#fbb,stroke:#333,stroke-width:2px
 ```
 
 ### 🚀 Key Features
 
-1. **Autonomous Trading**
+**Meteora Pool Integration**
 
-   - Real-time monitoring of Meteora pools
-   - Automated micro-trading strategies
-   - Self-adjusting parameters based on market conditions
-   - Slippage protection and fail-safes
-   - Integrated BirdEye price feeds
+- Real-time pool state monitoring
+- Price impact analysis
+- Liquidity validation
+- Pool health checks
 
-2. **RAG-Enhanced Decision Making**
+**Paper Trading System**
 
-   - Vector embeddings of historical trades using pgAI
-   - Semantic search with Ollama (all-minilm model)
-   - Automated vector updates via pgAI vectorizer
-   - Continuous learning from trade outcomes
+- Portfolio management
+- Trade execution simulation
+- Performance tracking
+- Historical trade analysis
 
-3. **Advanced Analytics**
-   - Real-time price impact analysis via BirdEye
-   - Liquidity depth monitoring
-   - Vector-based trade pattern analysis
-   - Historical trade pattern matching
+**Price Services**
+
+- BirdEye price feed integration
+- Aggregated price service with fallbacks
+- Historical price tracking
+- Price impact estimation
+
+**Vector-Based Analysis**
+
+- Trade vectorization using Claude AI
+- Semantic similarity search
+- Pattern recognition
+- Automated vector updates
+
+### 💾 Database Schema
+
+```sql
+-- Core Tables
+paper_portfolios        # Paper trading portfolios
+paper_trades           # Individual trade records
+trade_embeddings_store # Vector embeddings for trades
+meteora_pool_states    # Pool state snapshots
+portfolio_snapshots    # Portfolio value snapshots
+```
 
 ### 📚 Usage Examples
 
-1. **Basic Agent Initialization**
+**Initialize Paper Trading**
 
 ```typescript
-import { AgentBABA } from './services/agent';
+import { agentBABA } from './services/agent';
 
-// Initialize with default configuration
-const agent = new AgentBABA();
+// Create new paper trading portfolio
+const portfolioId = await agentBABA.initializePaperTrading();
+console.log('Portfolio created:', portfolioId);
 
-// Check agent health
-const health = await agent.getAgentHealth();
-console.log('Agent Status:', health.status);
-console.log('Warnings:', health.warnings);
+// Check portfolio status
+const status = await agentBABA.getPaperPortfolioStatus();
+console.log('Balance:', {
+  SOL: status.portfolio.currentBalanceSol,
+  BABABILL: status.portfolio.currentBalanceBababill,
+});
 ```
 
-2. **Paper Trading**
+**Execute Paper Trades**
 
 ```typescript
-// Initialize paper trading portfolio
-const portfolioId = await agent.initializePaperTrading();
-
-// Execute a buy trade (0.1 SOL worth)
-const buyTrade = await agent.executePaperTrade('BUY', 0.1);
-console.log('Buy Trade Result:', {
+// Execute a buy trade
+const buyTrade = await agentBABA.executePaperTrade('BUY', 0.1);
+console.log('Trade Result:', {
   amountIn: buyTrade.amountIn,
   amountOut: buyTrade.amountOut,
   priceImpact: buyTrade.estimatedPriceImpact,
   fee: buyTrade.feesSol,
 });
 
-// Get portfolio status
-const status = await agent.getPaperPortfolioStatus();
-console.log('Portfolio Balance:', {
-  SOL: status.portfolio.currentBalanceSol,
-  BABABILL: status.portfolio.currentBalanceBababill,
+// Get trade history
+const trades = await agentBABA.getPaperTrades(10);
+console.log('Recent Trades:', trades);
+```
+
+Price Analysis
+
+```typescript
+// Check current price
+const price = await agentBABA.checkBABABILLPrice();
+
+// Estimate trade impact
+const estimate = await agentBABA.estimateMicroTrade(0.1);
+console.log('Trade Estimate:', {
+  expectedOutput: estimate.estimatedAmountOut,
+  priceImpact: estimate.priceImpact,
+  fee: estimate.fee,
 });
-```
-
-3. **Vector-Enhanced Trade Analysis**
-
-```typescript
-// Search for similar historical trades
-const similarTrades = await agent.tradeVectorizer.searchSimilarTrades(
-  'profitable trades with low price impact',
-  5 // limit
-);
-
-// Analyze trade patterns
-const tradeAnalysis = await agent.tradeVectorizer.findSimilarTradesWithContext(
-  'successful trading patterns in current market conditions'
-);
-console.log('AI Analysis:', tradeAnalysis);
-```
-
-4. **Token Operations**
-
-```typescript
-// Deploy BABA token
-const tokenDeploy = await agent.deployBABAToken();
-console.log('Token Mint:', tokenDeploy.mint.toString());
-
-// Create NFT collection
-const collection = await agent.deployBABACollection();
-console.log('Collection:', collection.collectionAddress.toString());
-
-// Send BABA airdrop
-const recipients = [
-  'AH7F2EPqGPvHmCwKxghfpjpYKGX4zHxiEiKQCUAk65zj',
-  'BH8F3EPqGPvHmCwKxghfpjpYKGX4zHxiEiKQCUAk65zk',
-];
-const airdropResult = await agent.sendBABABAirdrop(recipients, 100);
-console.log('Airdrop Signatures:', airdropResult);
 ```
 
 ### 🛠️ Technical Stack
 
-- **Blockchain:** Solana
-- **DEX Integration:** Meteora/Jupiter
-- **Language:** TypeScript/Bun
-- **AI:** Claude AI (Anthropic)
-- **Vector Database:** PGAI with Ollama
-- **Price Oracle:** BirdEye API
-- **Server:** Hono
-- **SDK:** Solana Agent Kit
+Blockchain: Solana
+DEX: Meteora Pools
+Database: PostgreSQL + pgvector
+Language: TypeScript/Bun
+Price Oracle: BirdEye
+Server: Hono
+Vector Analysis: Claude AI embeddings
+
+````
 
 ### 🔧 Installation
 
@@ -169,51 +151,51 @@ console.log('Airdrop Signatures:', airdropResult);
 git clone https://github.com/yourusername/agent-baba.git
 
 # Install dependencies
+
 bun install
 
-# Start the database and required services
+# Start services
+
 docker compose up -d
 
-# Pull required Ollama model
-docker compose exec ollama ollama pull all-minilm
+# Initialize database
 
-# Initialize the database
 bun run init-db
 
-# Start the agent
+# Start agent
+
 bun run dev
-```
+````
 
 ### 🌐 API Endpoints
 
 ```bash
-# Check agent health
-curl http://localhost:3000/health
+# System Health
+GET /health
 
-# Get current BABABILL price
-curl http://localhost:3000/price
+# Price Information
 
-# Initialize paper trading
-curl -X POST http://localhost:3000/paper-trading/initialize
+GET /price
+GET /estimate-trade
 
-# Execute a paper trade
-curl -X POST http://localhost:3000/paper-trading/trade \
-  -H "Content-Type: application/json" \
-  -d '{"tradeType": "BUY", "amountIn": 0.1}'
+# Paper Trading
 
-# Get trading history
-curl http://localhost:3000/paper-trading/trades?limit=10&offset=0
-
-# Get portfolio analytics
-curl http://localhost:3000/paper-trading/analytics
+POST /paper-trading/initialize
+GET /paper-trading/status
+POST /paper-trading/trade
+GET /paper-trading/trades
 ```
 
-### 🔒 Environment Variables
+### 🔒 Environment Setup
 
 ```env
+# RPC and APIs
 HELIUS_RPC_URL=your_helius_url
 CLAUDE_API_KEY=your_claude_key
 BIRDEYE_API_KEY=your_birdeye_key
+
+# Database
+
 POSTGRES_HOST=localhost
 POSTGRES_PORT=5432
 POSTGRES_DB=agent_baba
@@ -225,39 +207,28 @@ POSTGRES_PASSWORD=postgres
 
 ```yaml
 services:
-  db:
-    image: timescale/timescaledb-ha:pg17
-  vectorizer-worker:
-    image: timescale/pgai-vectorizer-worker:latest
-  ollama:
-    image: ollama/ollama
+db:
+image: timescale/timescaledb-ha:pg17
+environment:
+POSTGRES_PASSWORD: postgres
+ports: - "5432:5432"
+volumes: - data:/home/postgres/pgdata/data - ./src/db:/docker-entrypoint-initdb.d
+
+vectorizer-worker:
+image: timescale/pgai-vectorizer-worker:latest
+environment:
+PGAI_VECTORIZER_WORKER_DB_URL: postgres://postgres:postgres@db:5432/postgres
 ```
 
 ### 🧪 Testing
 
 ```bash
-# Run basic tests
-bun test
-
-# Test paper trading
-bun run test-paper-trade
-
-# Test price service
-bun run test-price-service
-
-# Test vectorizer
-bun run test-vectorizer
+# Test suites
+bun test # Run all tests
+bun run test-paper-trade # Test paper trading
+bun run test-price-service # Test price services
+bun run test-vectorizer # Test vector analysis
 ```
-
-### 🚀 Production Deployment
-
-For production deployment, consider:
-
-- Setting up proper monitoring
-- Configuring fail-safes
-- Setting up backup systems
-- Implementing circuit breakers
-- Using secure key management
 
 ### 👥 Team
 
@@ -269,11 +240,7 @@ MIT License - see LICENSE for details
 
 ### 🤝 Contributing
 
-Contributions are welcome! Please read our Contributing Guidelines for details on our code of conduct and the process for submitting pull requests.
-
-### 📞 Support
-
-Join our Discord for support and discussions.
+Contributions welcome! Please read our Contributing Guidelines before submitting pull requests.
 
 ```
 
