@@ -191,8 +191,6 @@ graph TB
    );
    ```
 
-[Rest of original README content remains the same, with sections reordered for better flow]
-
 ### 🔬 Performance Metrics
 
 Agent BABA provides comprehensive performance tracking:
@@ -228,8 +226,6 @@ app.get('/symbiosis/metrics', async (c) => {
   });
 });
 ```
-
-[Original installation, API endpoints, and other technical sections follow]
 
 ### 🎯 Future Development
 
