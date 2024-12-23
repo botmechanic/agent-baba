@@ -19,7 +19,7 @@ export async function runVectorizerWorker() {
 }
 
 // Only start the worker if this module is run directly
-if (import.meta.url === import.meta.main) {
+if (import.meta.url.endsWith('vectorizer-worker.ts')) {
     runVectorizerWorker()
         .catch(console.error);
 }
