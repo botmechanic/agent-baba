@@ -70,8 +70,6 @@ graph TB
    - Extended with custom symbiosis monitoring
    - Automated parameter optimization
 
-Agent BABA represents a breakthrough in autonomous trading agents on Solana, introducing the first self-sustaining AI trading system powered by innovative token symbiosis. By combining Meteora liquidity pools, vector-based trade analysis, and a unique dual-token economic model ($AGENTB and $BABABILL), Agent BABA creates a self-reinforcing ecosystem where AI performance directly correlates with token value.
-
 ### 🔄 Token Symbiosis Innovation
 
 The cornerstone of Agent BABA's innovation is its groundbreaking symbiotic relationship between $AGENTB and $BABABILL tokens, establishing a first-of-its-kind self-sustaining AI trading ecosystem on Solana.
